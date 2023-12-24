@@ -2,17 +2,25 @@ name: Upload to S3
 
 on:
   push:
+    branches:
+      - main
 
 jobs:
-  deploy:
+  upload:
     runs-on: ubuntu-latest
-
+    permissions:
+      id-token: write
+      contents: read
+      
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Set up AWS credentials
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        run: aws s3 cp tutorial s3://minoritest/tutorial --recursive --region ap-northeast-1
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-region: ap-northeast-1
+          role-to-assume: ${{ secrets.IAM_ROLE_ARN }}
+
+      - name: Upload to S3
+        run: aws s3 ls s3://minoritest/tutorial
